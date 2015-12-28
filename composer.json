@@ -1,0 +1,34 @@
+{
+    "name": "orgasmicnightmare/cakephp-seo",
+    "license": "MIT",
+    "description": "Seo plugin for CakePHP 3",
+    "type": "cakephp-plugin",
+    "authors": [
+        {
+            "name": "Olivier Sazos",
+            "email": "contact@oliviersazos.fr",
+            "homepage": "http://oliviersazos.fr"
+        },
+    ],
+    "require": {
+        "cakephp/cakephp": "~3.0",
+        "friendsofcake/search": "~1.1"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "*"
+    },
+    "suggest": {
+        "cakephp/migrations": "Database Migration plugin for CakePHP 3.0 based on Phinx"
+    },
+    "autoload": {
+        "psr-4": {
+            "Seo\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Seo\\Test\\": "tests",
+            "Cake\\Test\\": "./vendor/cakephp/cakephp/tests"
+        }
+    }
+}
