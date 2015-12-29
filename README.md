@@ -1,6 +1,14 @@
-# Seo plugin for CakePHP
+# CakePHP SEO Plugin
 
-This plugin is largely inspired by [CakePHP-Seo-Plugin](https://github.com/webtechnick/CakePHP-Seo-Plugin)
+[![License](https://poser.pugx.org/orgasmicnightmare/cakephp-seo/license)](https://packagist.org/packages/orgasmicnightmare/cakephp-seo)
+
+A SEO plugin for cakePHP 3 to manage seo tags with ease. It comes with a Behavior, a Component, a View Cell and the default admin crud actions for each tables. 
+
+- The behavior helps you to generate some default tags for each model. You can use simple text, pattern, callbacks.
+- The component inject tags in the view.
+- The view cell helps you to add or edit tags directly in the admin view of a record.
+
+_Note: This plugin has been inspired by [CakePHP-Seo-Plugin](https://github.com/webtechnick/CakePHP-Seo-Plugin)_
 
 ## Installation
 
@@ -24,38 +32,16 @@ You can now access to the admin sections :
 - yoursite/admin/seo/seo-meta-tags
 - yoursite/admin/seo/seo-canonicals
 
-## Component
-
-The SeoComponent prepare and send informations to the view based on the URI.   
-To use it, just add it in your ```AppController.php``` or any child controller.
-
-default configuration is 
-
-```
-$_defaultConfig = [
-	'excludePrefix' => ['admin'],
-	'defaults' => [
-        'title' => 'Default Title',
-        'prefix' => null,
-        'suffix' => null
-    ],
-    'templates' => [
-        'meta' => '<meta{{attrs}}/>',
-        'canonical' => '<link rel="canonical" href="{{content}}"/>'
-    ]
-];
-```
-
-- excludePrefix: bypass the process for theses prefixes
-- defaults.title: the title tag
-- defaults.prefix: prefix for the title tag
-- defaults.suffix: suffix for the title tag
-
 ## Behavior
 
-The SeoBehavior allows you to automatize the creation of seo fields when you add a new entry.
+The SeoBehavior allows you to automatize the creation of seo fields when you add a new entry.    
 
-default configuration is 
+Configure the behavior, see below default configuration, and each time you will add an entry, all configured tags will be generated.
+It's a real time saver…     
+
+Later you can access to the data throw the admin sections or via the _Seo cell box_ if in you add it in your model view.
+
+default configuration is :
 
 ```
 $_defaultConfig = [
@@ -68,6 +54,7 @@ $_defaultConfig = [
                     'slug' => 'slug'
                 ]
             ],
+            'title' => 'Seo default title',
             'canonical' => true,
             'meta_tags' => [
                 'og:type' => [
@@ -96,13 +83,40 @@ $_defaultConfig = [
 - **urls.url** standard CakePHP route options array. This key has two specials keys:
 	- **_** used to pass some variable for the route ex : /brand/:slug 
 	- **_callback** a callback to generate a route options array
+- **urls.title** Title pattern. Ex: ```{{name}}```, will just use the field 'name' to fill the title tag.
 - **urls.canonical** true if you want to add a canonical tag
 - **urls.meta_tags** array of meta tags you want to add. Each key is a new tag name and support many options
 	- **callback** a callback wich is executed to set the content of the tag (more on this later)
-	- **content** a template to format the content. Ex : ```'Hello {{name}}``` the text in the double accolade is a field of the entity.
+	- **content** a template to format the content. Ex : ```Hello {{name}}``` the text in the double accolade is a field of the entity.
 	- **is_property** if true, the tag use the attribute "property" instead of "name".
 	- **is_http_equiv** if true, the tag will have the attribute "is_http_equiv" set to true.
 
+## Component
+
+The SeoComponent prepare and send informations to the view based on the URI.   
+To use it, just add it in your ```AppController.php``` or any child controllers.
+
+default configuration is :
+
+```
+$_defaultConfig = [
+    'excludePrefix' => ['admin'],
+    'defaults' => [
+        'title' => 'Default Title',
+        'prefix' => null,
+        'suffix' => null
+    ],
+    'templates' => [
+        'meta' => '<meta{{attrs}}/>',
+        'canonical' => '<link rel="canonical" href="{{content}}"/>'
+    ]
+];
+```
+
+- excludePrefix: bypass the process for theses prefixes
+- defaults.title: the title tag
+- defaults.prefix: prefix for the title tag
+- defaults.suffix: suffix for the title tag
 
 ## View Cell
 
@@ -122,10 +136,3 @@ in your Template/Admin/Products/edit.ctp, just add
 In this example, I use a named route but you can use a standard array. **Just remember to use the route for which you want to add Seo metas, in this case the public view of a product**.
 
 Actually, the default template doesn't respect the CakePHP default layout, and you surely want to override. To do this, [just follow the conventional way](http://book.cakephp.org/3.0/en/plugins.html#overriding-plugin-templates-from-inside-your-application). 
-
-
-
-
-
-
-
