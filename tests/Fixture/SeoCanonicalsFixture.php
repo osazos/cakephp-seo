@@ -21,9 +21,6 @@ class SeoCanonicalsFixture extends TestFixture
         'seo_uri_id' => ['type' => 'integer', 'length' => 11, 'unsigned' => false, 'null' => false, 'default' => null, 'comment' => '', 'precision' => null, 'autoIncrement' => null],
         'canonical' => ['type' => 'string', 'length' => 255, 'null' => false, 'default' => null, 'comment' => '', 'precision' => null, 'fixed' => null],
         'active' => ['type' => 'boolean', 'length' => null, 'null' => true, 'default' => '0', 'comment' => '', 'precision' => null],
-        '_indexes' => [
-            'seo_uri_id' => ['type' => 'index', 'columns' => ['seo_uri_id'], 'length' => []],
-        ],
         '_constraints' => [
             'primary' => ['type' => 'primary', 'columns' => ['id'], 'length' => []],
         ],

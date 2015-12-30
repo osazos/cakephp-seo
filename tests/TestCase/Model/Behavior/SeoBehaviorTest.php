@@ -49,8 +49,8 @@ class SeoBehaviorTest extends TestCase
 
         TableRegistry::clear();
 
-        $this->router = new Router;
-        $this->router->scope('/', function($routes) {
+        Router::reload();
+        Router::scope('/', function($routes) {
             $routes->fallbacks('DashedRoute');
         });
 
@@ -109,7 +109,9 @@ class SeoBehaviorTest extends TestCase
      */
     public function tearDown()
     {
-        unset($this->Seo);
+        unset($this->SeoBehavior);
+        unset($this->Articles);
+        unset($this->router);
 
         parent::tearDown();
 
@@ -127,6 +129,7 @@ class SeoBehaviorTest extends TestCase
         ];
 
         $expected = '/articles/view?slug=test-title-one';
+        $actual = "";
         $actual = $this->callProtectedMethod('_getUri', $parameters, $this->SeoBehavior);
         $this->assertEquals($expected, $actual);
 
@@ -163,7 +166,7 @@ class SeoBehaviorTest extends TestCase
     public function testSetCanonical()
     {
         $expected = [
-            'canonical' => $this->router->fullBaseUrl() . '/articles/view?slug=test-title-one',
+            'canonical' => Router::fullBaseUrl() . '/articles/view?slug=test-title-one',
             'active' => true
         ];
         $actual = $this->Articles->setCanonical($this->defaultEntity, '/articles/view?slug=test-title-one', $this->defaultConfig['urls'][0]);
