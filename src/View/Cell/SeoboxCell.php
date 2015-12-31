@@ -36,7 +36,7 @@ class SeoboxCell extends Cell
             // Create a new uri.
             $seoUriEntity = $this->SeoUris->newEntity();
             $seoUriEntity->uri = $uri;
-            $seoUriEntity->approved = 1;
+            $seoUriEntity->is_approved = true;
 
             if ($this->SeoUris->save($seoUriEntity)) {
                 $seoUri = $this->SeoUris->getByUri($uri);
