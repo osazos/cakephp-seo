@@ -1,18 +1,21 @@
 <?php
 namespace Seo\Test\TestCase\Controller\Component;
 
+use Cake\Cache\Cache;
 use Cake\Controller\Controller;
 use Cake\Controller\ComponentRegistry;
-use Cake\TestSuite\TestCase;
-use Seo\Controller\Component\SeoComponent;
+use Cake\Event\Event;
 use Cake\Network\Request;
 use Cake\Network\Response;
+use Cake\TestSuite\TestCase;
 use Cake\ORM\TableRegistry;
-use Cake\Cache\Cache;
+use Seo\Controller\Component\SeoComponent;
+
 
 class SeoComponentTestController extends Controller
 {
     public $components = ['Seo.Seo'];
+
 }
 
 /**
@@ -48,10 +51,11 @@ class SeoComponentTest extends TestCase
         $response = new response();
 
         $this->Controller = new SeoComponentTestController(new Request('/articles/view/test-title-one'));
+        $this->Controller->viewBuilder()->className('View');
+        $this->Controller->viewBuilder()->layout('default');
         $this->Controller->startupProcess();
 
-        // $registry = new ComponentRegistry($this->controller);
-        // $this->seoComponent = new SeoComponent($registry);
+        $this->View = $this->Controller->createView();
     }
 
     /**
@@ -66,16 +70,23 @@ class SeoComponentTest extends TestCase
         parent::tearDown();
     }
 
-    /**
-     * Test initial setup
-     *
-     * @return void
-     */
-    public function testInitialization()
+    public function testSeoToHtml()
     {
-        $this->markTestIncomplete('Not implemented yet.');
-    }
+        $event = new Event('Event', $this->View);
+        $actual = $this->Controller->Seo->seoToHtml($event);
+        $titleBlock = 'Seo Test title one';
+        $metaBlock = '<link rel="canonical" href="http://test.local/articles/view/test-title-one"/><meta name="description" content="Seo description content"/><meta name="robots" content="index, follow"/><meta property="og:title" content="Open graph Seo Title"/><meta http-equiv="Content-Language" content="fr_FR"/>';
 
+        $this->assertEquals($titleBlock, $this->View->Blocks->get('title'));
+        $this->assertEquals($metaBlock, $this->View->Blocks->get('meta'));
+
+        // Bad uri
+        $this->Controller->request->here = '/foo';   
+        $event = new Event('Event', $this->Controller);
+        $actual = $this->Controller->Seo->seoToHtml($event);
+        $this->assertNull($actual);
+    }
+    
     public function testGetUriDatas()
     {
         // Default, based on this->request->here
@@ -132,7 +143,8 @@ class SeoComponentTest extends TestCase
         $expected = [
             '<meta name="description" content="Seo description content"/>',
             '<meta name="robots" content="index, follow"/>',
-            '<meta property="og:title" content="Open graph Seo Title"/>'
+            '<meta property="og:title" content="Open graph Seo Title"/>',
+            '<meta http-equiv="Content-Language" content="fr_FR"/>'
         ];
         
         $result = $this->Controller->Seo->getMetaTags($uriEntity->seo_meta_tags);

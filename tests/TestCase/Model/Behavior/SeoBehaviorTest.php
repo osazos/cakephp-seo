@@ -2,6 +2,7 @@
 namespace Seo\Test\TestCase\Model\Behavior;
 
 use Cake\TestSuite\TestCase;
+use Cake\Cache\Cache;
 use Seo\Model\Behavior\SeoBehavior;
 use Cake\ORM\Behavior;
 use Cake\ORM\Table;
@@ -11,10 +12,7 @@ use Cake\Utility\Inflector;
 use Cake\Routing\Router;
 use Cake\Routing\RouteCollection;
 use Cake\ORM\TableRegistry;
-
 use Cake\I18n\I18n;
-
-
 
 class ArticlesTable extends Table
 {
@@ -38,37 +36,7 @@ class SeoBehaviorTest extends TestCase
         'plugin.Seo.SeoMetaTags',
     ];
 
-    /**
-     * setUp method
-     *
-     * @return void
-     */
-    public function setUp()
-    {
-        parent::setUp();
-
-        TableRegistry::clear();
-
-        Router::reload();
-        Router::scope('/', function($routes) {
-            $routes->fallbacks('DashedRoute');
-        });
-
-        $this->Articles = TableRegistry::get('Articles', [
-            'className' => 'Seo\Test\TestCase\Model\Behavior\ArticlesTable'
-        ]);
-        $this->Articles->addBehavior('Seo.Seo');
-
-        $this->SeoBehavior = new SeoBehavior($this->Articles);
-
-        $this->setReflectionClassInstance($this->SeoBehavior);
-        //$this->defaultReflectionTarget = $this->SeoBehavior; // (optional)
-
-        $this->defaultEntity = $this->Articles->find()->first();
-
-        $this->locale = I18n::locale();
-
-        $this->defaultConfig = [
+    public $defaultConfig = [
             'urls' => [
                 [
                     'url' => [
@@ -100,6 +68,39 @@ class SeoBehaviorTest extends TestCase
                 ]
             ]
         ];
+
+    /**
+     * setUp method
+     *
+     * @return void
+     */
+    public function setUp()
+    {
+        parent::setUp();
+
+        TableRegistry::clear();
+
+        Cache::disable();
+
+        Router::reload();
+        //Router::fullBaseUrl('http://test.local');
+        Router::scope('/', function($routes) {
+            $routes->fallbacks('DashedRoute');
+        });
+
+        $this->Articles = TableRegistry::get('Articles', [
+            'className' => 'Seo\Test\TestCase\Model\Behavior\ArticlesTable'
+        ]);
+        $this->Articles->addBehavior('Seo.Seo', $this->defaultConfig);
+
+        $this->SeoBehavior = new SeoBehavior($this->Articles, $this->defaultConfig);
+
+        $this->setReflectionClassInstance($this->SeoBehavior);
+        //$this->defaultReflectionTarget = $this->SeoBehavior; // (optional)
+
+        $this->defaultEntity = $this->Articles->find()->first();
+
+        $this->locale = I18n::locale();
     }
 
     /**
@@ -116,6 +117,30 @@ class SeoBehaviorTest extends TestCase
         parent::tearDown();
 
         TableRegistry::clear();
+    }
+
+    /**
+     * Full logic to save an entity
+     * @todo
+     */
+    public function testAfterSave()
+    {
+        $article = TableRegistry::get('Articles')->newEntity([
+            'title' => 'A new fucking good article',
+            'slug' => 'a-new-fucking-good-article',
+            'content' => 'Lorem ipsum dolor sit amet, consectetur adipisicing elit. Magni esse odit fugiat, officiis tempore, numquam excepturi, vitae pariatur maxime, alias est quaerat consequatur vel cum exercitationem sint ex ab hic.',
+            'created' => '2015-01-01 18:00:00',
+            'modified' => '2015-01-01 18:00:00'
+        ]);
+
+        $this->SeoUris = TableRegistry::get('Seo.SeoUris');
+        $this->Articles->save($article);
+        $actual = $this->SeoUris->getByUri('/articles/view?slug=a-new-fucking-good-article');
+        
+        $this->assertEquals('A new fucking good article - test', $actual->seo_title->title);
+        $this->assertEquals(Router::fullBaseUrl() . '/articles/view?slug=a-new-fucking-good-article', $actual->seo_canonical->canonical);
+        $metas = $this->Articles->behaviors()->get('Seo')->config('urls.0.meta_tags');
+        $this->assertEquals(count($metas), count($actual->seo_meta_tags));
     }
 
     /**
@@ -158,6 +183,9 @@ class SeoBehaviorTest extends TestCase
         $expected = 'Test title one - test';
         $result = $this->Articles->setSeoTitle($this->defaultEntity, '/view?slug=test-title-one', $this->defaultConfig['urls'][0]);
         $this->assertEquals($expected, $result);
+
+        $actual = $this->Articles->setSeoTitle($this->defaultEntity, '/view?slug=test-title-one', []);
+        $this->assertFalse($actual);
     }
 
     /**
@@ -171,6 +199,9 @@ class SeoBehaviorTest extends TestCase
         ];
         $actual = $this->Articles->setCanonical($this->defaultEntity, '/articles/view?slug=test-title-one', $this->defaultConfig['urls'][0]);
         $this->assertEquals($expected, $actual);
+
+        $actual = $this->Articles->setCanonical($this->defaultEntity, '/articles/view?slug=test-title-one', []);
+        $this->assertFalse($actual);
     }
 
     /**
@@ -206,15 +237,9 @@ class SeoBehaviorTest extends TestCase
         ];
         $actual = $this->Articles->setMetaTags($this->defaultEntity, '/articles/view?slug=test-title-one', $this->defaultConfig['urls'][0]);
         $this->assertEquals($expected, $actual);
-    }
 
-    /**
-     * Full logic to save an entity
-     * @todo
-     */
-    public function testSaveDefaultUri()
-    {
-        
+        $actual = $this->Articles->setMetaTags($this->defaultEntity, '/articles/view?slug=test-title-one', []);
+        $this->assertFalse($actual);
     }
 
     /**
@@ -225,6 +250,10 @@ class SeoBehaviorTest extends TestCase
         $expected = 'Test title one - test';
         $actual = $this->callProtectedMethod('_formatTemplate', [$this->defaultConfig['urls'][0]['title'], $this->defaultEntity], $this->SeoBehavior);
         $this->assertEquals($expected, $actual);
+
+
+        $actual = $this->callProtectedMethod('_formatTemplate', ['{{xxxx}}', $this->defaultEntity], $this->SeoBehavior);
+        $this->assertEquals('', $actual);
     }
 
     /**

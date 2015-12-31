@@ -71,5 +71,35 @@ class SeoMetaTagsFixture extends TestFixture
             'created' => '2015-09-18 07:07:12',
             'modified' => '2015-09-18 07:07:12'
         ],
+        [
+            'id' => 4,
+            'seo_uri_id' => 1,
+            'name' => 'Content-Language',
+            'content' => 'fr_FR',
+            'is_http_equiv' => 1,
+            'is_property' => 0,
+            'created' => '2015-09-18 07:07:12',
+            'modified' => '2015-09-18 07:07:12'
+        ],
+        [
+            'id' => 5,
+            'seo_uri_id' => 1,
+            'name' => 'tag-name',
+            'content' => '',
+            'is_http_equiv' => 0,
+            'is_property' => 0,
+            'created' => '2015-09-18 07:07:12',
+            'modified' => '2015-09-18 07:07:12'
+        ],
+        [
+            'id' => 6,
+            'seo_uri_id' => 1,
+            'name' => 'tag-name',
+            'content' => null,
+            'is_http_equiv' => 0,
+            'is_property' => 0,
+            'created' => '2015-09-18 07:07:12',
+            'modified' => '2015-09-18 07:07:12'
+        ]
     ];
 }

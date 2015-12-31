@@ -31,6 +31,11 @@
 
     <!-- Prevent coverage reports from looking in tests and vendors -->
     <filter>
+        <whitelist>
+            <directory suffix=".php">./src/</directory>
+        </whitelist>
+    </filter>
+    <filter>
         <blacklist>
             <directory suffix=".php">./vendor/</directory>
             <directory suffix=".ctp">./vendor/</directory>

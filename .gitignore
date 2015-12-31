@@ -2,5 +2,7 @@
 /config/app.php
 /tmp/*
 /logs/*
+webroot/coverage
 
 .DS_Store
+composer.lock

@@ -22,6 +22,7 @@ class SeoBehavior extends Behavior
      * Default configuration.
      *
      * @var array
+     * @todo Add the choice to merge or overwrite configuration.
      */
     protected $_defaultConfig = [
         'urls' => [
@@ -161,18 +162,19 @@ class SeoBehavior extends Behavior
     public function saveDefaultUri(Entity $entity, $urlsConfig = false)
     {
         if (!$urlsConfig) {
-            $config = $this->config('urls');
+            $urlsConfig = $this->config('urls');
         }
+
         foreach ($urlsConfig as $key => $url) {
             $uri = $this->_getUri($entity, $url);
             
             $uriEntity = [
                 'uri' => $uri,
-                'approved' => true,
+                'is_approved' => true,
                 'seo_title' => [
                     'title' => $this->setSeoTitle($entity, $uri, $url)
                 ],
-                'seo_canonical' => $this->setCanonical($entity, $uri),
+                'seo_canonical' => $this->setCanonical($entity, $uri, $url),
                 'seo_meta_tags' => $this->setMetaTags($entity, $uri, $url)
             ];
 
@@ -239,15 +241,14 @@ class SeoBehavior extends Behavior
      * @param Cake\ORM\Entity $entity The entity
      * @param string $uri The Uri
      * @param array $config Configuration array for the uri
-     * @return string ex.: My super title
+     * @return mixed string|false ex.: My super title
      */
     public function setSeoTitle(Entity $entity, $uri, array $config)
     {
-        $title = null;
         if (array_key_exists('title', $config)) {
-            $title = $this->_formatTemplate($config['title'], $entity);
+            return $this->_formatTemplate($config['title'], $entity);
         }
-        return $title;
+        return false;
     }
 
     /**
@@ -297,12 +298,9 @@ class SeoBehavior extends Behavior
                 $matchEntity = $table->get($entity->{$x[1] . '_id'});
                 return $matchEntity->{$x[2]};
             }
-
             if ($entity->has($matches[1])) {
                 return $entity->{$matches[1]};
             }
-
-            return false;
 
         }, $pattern);
 

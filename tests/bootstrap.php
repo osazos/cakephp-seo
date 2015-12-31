@@ -25,7 +25,8 @@ define('CAKE_CORE_INCLUDE_PATH', ROOT . '/vendor/cakephp/cakephp');
 define('CORE_PATH', CAKE_CORE_INCLUDE_PATH . DS);
 
 Cake\Core\Configure::write('App', [
-    'namespace' => 'App'
+    'namespace' => 'App',
+    'fullBaseUrl' => 'http://test.local'
 ]);
 
 Cake\Core\Configure::write('debug', true);
