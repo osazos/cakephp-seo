@@ -1,6 +1,7 @@
 <?php
 namespace Seo\Test\TestCase\Model\Behavior;
 
+use ArrayObject;
 use Cake\TestSuite\TestCase;
 use Cake\Cache\Cache;
 use Seo\Model\Behavior\SeoBehavior;
@@ -117,6 +118,29 @@ class SeoBehaviorTest extends TestCase
         parent::tearDown();
 
         TableRegistry::clear();
+    }
+
+    public function testBeforeDelete()
+    {
+        $entity = $this->Articles->get(1);
+        $this->SeoBehavior->beforeDelete(New Event('beforeDelete', []), $entity, new ArrayObject);
+        $this->SeoUris = TableRegistry::get('Seo.SeoUris');
+        $expected = $this->SeoUris->getByUri('/articles/view?slug=test-title-one');
+        $result = $this->getProtectedProperty('_seoUriEntities', $this->SeoBehavior);
+        $this->assertEquals($expected, $result[0]);
+    }
+
+    public function testAfterDelete()
+    {
+        $this->SeoUris = TableRegistry::get('Seo.SeoUris');
+
+        $entity = $this->Articles->get(1);
+        
+        //$this->SeoBehavior->beforeDelete(New Event('beforeDelete', []), $entity, new ArrayObject);
+        //$result = $this->getProtectedProperty('_seoUriEntities', $this->SeoBehavior);
+        //$this->assertEquals($expected, $result[0]);
+        $this->Articles->delete($entity);
+        $this->assertNull($this->SeoUris->getByUri('/articles/view?slug=test-title-one'));
     }
 
     /**

@@ -50,7 +50,7 @@ class SeoComponentTest extends TestCase
         $request = new request();
         $response = new response();
 
-        $this->Controller = new SeoComponentTestController(new Request('/articles/view/test-title-one'));
+        $this->Controller = new SeoComponentTestController(new Request('/articles/view?slug=test-title-one'));
         $this->Controller->viewBuilder()->className('View');
         $this->Controller->viewBuilder()->layout('default');
         $this->Controller->startupProcess();
@@ -75,7 +75,7 @@ class SeoComponentTest extends TestCase
         $event = new Event('Event', $this->View);
         $actual = $this->Controller->Seo->seoToHtml($event);
         $titleBlock = 'Seo Test title one';
-        $metaBlock = '<link rel="canonical" href="http://test.local/articles/view/test-title-one"/><meta name="description" content="Seo description content"/><meta name="robots" content="index, follow"/><meta property="og:title" content="Open graph Seo Title"/><meta http-equiv="Content-Language" content="fr_FR"/>';
+        $metaBlock = '<link rel="canonical" href="http://test.local/articles/view?slug=test-title-one"/><meta name="description" content="Seo description content"/><meta name="robots" content="index, follow"/><meta property="og:title" content="Open graph Seo Title"/><meta http-equiv="Content-Language" content="fr_FR"/>';
 
         $this->assertEquals($titleBlock, $this->View->Blocks->get('title'));
         $this->assertEquals($metaBlock, $this->View->Blocks->get('meta'));
@@ -105,7 +105,7 @@ class SeoComponentTest extends TestCase
     public function testGetCanonicalTag()
     {
         $uriEntity = $this->Controller->Seo->getUriDatas();
-        $expected = '<link rel="canonical" href="http://test.local/articles/view/test-title-one"/>';
+        $expected = '<link rel="canonical" href="http://test.local/articles/view?slug=test-title-one"/>';
         $result = $this->Controller->Seo->getCanonicalTag($uriEntity);
         $this->assertEquals($expected, $result);
     }

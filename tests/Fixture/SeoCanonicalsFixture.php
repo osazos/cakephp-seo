@@ -40,7 +40,7 @@ class SeoCanonicalsFixture extends TestFixture
         [
             'id' => 1,
             'seo_uri_id' => 1,
-            'canonical' => 'http://test.local/articles/view/test-title-one',
+            'canonical' => 'http://test.local/articles/view?slug=test-title-one',
             'active' => 1
         ],
         [

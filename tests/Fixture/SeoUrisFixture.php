@@ -41,7 +41,7 @@ class SeoUrisFixture extends TestFixture
     public $records = [
         [
             'id' => 1,
-            'uri' => '/articles/view/test-title-one',
+            'uri' => '/articles/view?slug=test-title-one',
             'is_approved' => 1,
             'created' => '2015-09-18 07:06:55',
             'modified' => '2015-09-18 07:06:55'
