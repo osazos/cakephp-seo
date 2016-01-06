@@ -157,7 +157,7 @@ class SeoBehavior extends Behavior
      * @param Cake\ORM\Entity $entity The Entity
      * @param mixed $urlsConfig array of urls configuration to generate tags. If false,
      *        it will use the behavior configuration $this->config('urls') RECOMMENDED.
-     * @return void
+     * @return mixed Entity SeoUri or False if the uri already exists.
      */
     public function saveDefaultUri(Entity $entity, $urlsConfig = false)
     {
@@ -167,6 +167,12 @@ class SeoBehavior extends Behavior
 
         foreach ($urlsConfig as $key => $url) {
             $uri = $this->_getUri($entity, $url);
+
+            $SeoUris = TableRegistry::get('Seo.SeoUris');
+
+            if ($SeoUris->findByUri($uri)->find('approved')->first()) {
+                return false;
+            }
             
             $uriEntity = [
                 'uri' => $uri,
@@ -178,10 +184,9 @@ class SeoBehavior extends Behavior
                 'seo_meta_tags' => $this->setMetaTags($entity, $uri, $url)
             ];
 
-            $SeoUris = TableRegistry::get('Seo.SeoUris');
             $seoUriEntity = $SeoUris->newEntity($uriEntity);
-            
             $SeoUris->save($seoUriEntity);
+            return $seoUriEntity;
         }
     }
 
