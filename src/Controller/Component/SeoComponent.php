@@ -55,7 +55,6 @@ class SeoComponent extends Component implements EventListenerInterface
     {
         $this->_controller = $this->_registry->getController();
         $this->SeoUris = TableRegistry::get('Seo.SeoUris');
-        debug($this->SeoUris);
     }
 
     /**
