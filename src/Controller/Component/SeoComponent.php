@@ -44,6 +44,8 @@ class SeoComponent extends Component implements EventListenerInterface
      */
     protected $_controller;
 
+    public $SeoUris;
+
     /**
      * Initialize Hook
      * @param array $config Configuration array
@@ -52,6 +54,8 @@ class SeoComponent extends Component implements EventListenerInterface
     public function initialize(array $config)
     {
         $this->_controller = $this->_registry->getController();
+        $this->SeoUris = TableRegistry::get('Seo.SeoUris');
+        debug($this->SeoUris);
     }
 
     /**
@@ -73,6 +77,10 @@ class SeoComponent extends Component implements EventListenerInterface
      */
     public function seoToHtml(Event $event)
     {
+        if (array_key_exists('prefix', $this->_controller->request->params) 
+            && in_array($this->_controller->request->params['prefix'], $this->config('excludePrefix'))) {
+            return;
+        }
         $uri = $this->getUriDatas();
 
         if (!$uri) {
