@@ -34,25 +34,26 @@ class SeoBehavior extends Behavior
                         'slug' => 'slug'
                     ]
                 ],
+                'locale' => null,
                 'title' => 'Seo default title',
                 'canonical' => true,
                 'meta_tags' => [
-                    'og:type' => [
-                        'content' => 'website',
-                        'is_property' => true
-                    ],
-                    'og:description' => [
-                        'content' => '{{content}}',
-                        'is_property' => true
-                    ],
-                    'og:locale' => [
-                        'callback' => 'getLocale',
-                        'is_property' => true
-                    ],
-                    'twitter:description' => [
-                        'content' => '{{content}}',
-                        'is_property' => true
-                    ],
+                    // 'og:type' => [
+                    //     'content' => 'website',
+                    //     'is_property' => true
+                    // ],
+                    // 'og:description' => [
+                    //     'content' => '{{content}}',
+                    //     'is_property' => true
+                    // ],
+                    // 'og:locale' => [
+                    //     'callback' => 'getLocale',
+                    //     'is_property' => true
+                    // ],
+                    // 'twitter:description' => [
+                    //     'content' => '{{content}}',
+                    //     'is_property' => true
+                    // ],
                 ]
             ]
         ]
@@ -85,6 +86,13 @@ class SeoBehavior extends Behavior
     public function initialize(array $config)
     {
         $this->_SeoUris = TableRegistry::get('Seo.SeoUris');
+        $this->_table->hasOne('SeoUris', [
+            'className' => 'Seo.SeoUris',
+            'foreignKey' => 'foreign_key',
+            'conditions' => ['SeoUris.model' => $this->_table->alias()],
+            'dependent' => true,
+            'cascadeCallbacks' => true,
+        ]);
     }
 
     /**
@@ -112,7 +120,8 @@ class SeoBehavior extends Behavior
      */
     public function beforeDelete(Event $event, Entity $entity, ArrayObject $options)
     {
-        $this->beforeDeleteUri($entity);
+        // $this->beforeDeleteUri($entity);
+        return;
     }
 
     /**
@@ -125,12 +134,13 @@ class SeoBehavior extends Behavior
      */
     public function afterDelete(Event $event, Entity $entity, ArrayObject $options)
     {
-        $seoUri = "Seo\\Model\\Entity\\SeoUri";
-        foreach ($this->_seoUriEntities as $seoUriEntity) {
-            if ($seoUriEntity instanceof $seoUri) {
-                $this->_SeoUris->delete($seoUriEntity);
-            }
-        }
+        // $seoUri = "Seo\\Model\\Entity\\SeoUri";
+        // foreach ($this->_seoUriEntities as $seoUriEntity) {
+        //     if ($seoUriEntity instanceof $seoUri) {
+        //         $this->_SeoUris->delete($seoUriEntity);
+        //     }
+        // }
+        return;
     }
 
     /**
@@ -159,23 +169,28 @@ class SeoBehavior extends Behavior
      *        it will use the behavior configuration $this->config('urls') RECOMMENDED.
      * @return mixed Entity SeoUri or False if the uri already exists.
      */
-    public function saveDefaultUri(Entity $entity, $urlsConfig = false)
+    public function saveDefaultUri(Entity $entity, $urlsConfig = false, $checkApproved = true)
     {
         if (!$urlsConfig) {
             $urlsConfig = $this->config('urls');
         }
 
+        $uris = [];
+
         foreach ($urlsConfig as $key => $url) {
             $uri = $this->_getUri($entity, $url);
-
+            
             $SeoUris = TableRegistry::get('Seo.SeoUris');
 
-            if ($SeoUris->findByUri($uri)->find('approved')->first()) {
+            if ($checkApproved === true && $SeoUris->findByUri($uri)->find('approved')->first()) {
                 return false;
             }
             
             $uriEntity = [
                 'uri' => $uri,
+                'model' => $this->_table->alias(),
+                'foreign_key' => $entity->id,
+                'locale' => $url['locale'],
                 'is_approved' => true,
                 'seo_title' => [
                     'title' => $this->setSeoTitle($entity, $uri, $url)
@@ -186,8 +201,9 @@ class SeoBehavior extends Behavior
 
             $seoUriEntity = $SeoUris->newEntity($uriEntity);
             $SeoUris->save($seoUriEntity);
-            return $seoUriEntity;
+            $uris[] = $seoUriEntity;
         }
+        return $uris;
     }
 
     /**
@@ -203,12 +219,22 @@ class SeoBehavior extends Behavior
             foreach ($config['meta_tags'] as $key => $value) {
 
                 if (isset($value['callback'])) {
-                    $callback = $value['callback'];
+                    $defaults = [
+                        'function' => '',
+                        'options' => []
+                    ];
+
+                    if (!is_array($value['callback'])) {
+                        throw new \Exception("callback key must be an array");
+                    }
+
+                    $callback = array_merge($defaults, $value['callback']);
                     unset($value['callback']);
-                    if (is_array($callback)) {
-                        $value['content'] = call_user_func($callback, $value, $entity);
+
+                    if (is_array($callback['function'])) {
+                        $value['content'] = call_user_func($callback['function'], $value, $entity, $callback['options']);
                     } else {
-                        $value['content'] = call_user_func([$this, $callback], $value, $entity);
+                        $value['content'] = call_user_func([$this, $callback['function']], $value, $entity, $callback['options']);
                     }
                 }
 

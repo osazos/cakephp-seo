@@ -59,7 +59,10 @@ class SeoBehaviorTest extends TestCase
                             'is_property' => true
                         ],
                         'og:locale' => [
-                            'callback' => 'getLocale',
+                            'callback' => [
+                                'function' => 'getLocale'
+
+                            ],
                             'is_property' => true
                         ],
                         'robots' => [
@@ -264,6 +267,56 @@ class SeoBehaviorTest extends TestCase
 
         $actual = $this->Articles->setMetaTags($this->defaultEntity, '/articles/view?slug=test-title-one', []);
         $this->assertFalse($actual);
+    }
+
+    /**
+     * Set Meta Tags witch callback for content
+     */
+    public function testSetMetaTagsWitchCallback()
+    {
+        $config = [
+            'urls' => [
+                [
+                    'url' => [
+                        'prefix' => false,
+                        'controller' => 'articles',
+                        'action' => 'view',
+                        '_' => [
+                            'slug' => 'slug'
+                        ]
+                    ],
+                    'canonical' => true,
+                    'title' => '{{title}} - test',
+                    'meta_tags' => [
+                        'description' => [
+                            'callback' => [
+                                'function' => 'getDescription',
+                                'options' => ['fields' => 'content']
+                            ]
+                        ]
+                    ]
+                ]
+            ]
+        ];
+        $entity = $this->Articles->newEntity([
+            'id' => '1',
+            'title' => 'Test title one',
+            'slug' => 'test-title-one',
+            'content' => '<p>Lorem ipsum dolor sit amet</p> <ul><li>consectetur adipisicing elit.</li><li>Magni esse odit fugiat</li><li>officiis tempore</li></ul><p>numquam excepturi, vitae pariatur maxime, alias est quaerat consequatur vel cum exercitationem sint ex ab hic.&nbsp;</p>',
+            'created' => '2012-12-12 12:12:12',
+            'modified' => '2013-01-01 11:11:11',
+        ]);
+        $actual = $this->Articles->setMetaTags($entity, '/articles/view?slug=test-title-one', $config['urls'][0]);
+        
+        $expected = [
+            [
+                'name' => 'description',
+                'content' => 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Magni esse odit fugiat officiis tempore numquam excepturi, vitae pariatur maxime, alias est quaerat',
+                'is_http_equiv' => false,
+                'is_property' => false
+            ]
+        ];
+        $this->assertEquals($expected, $actual);
     }
 
     /**

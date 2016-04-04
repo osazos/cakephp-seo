@@ -15,7 +15,8 @@
         "friendsofcake/search": "~1.0"
     },
     "require-dev": {
-        "phpunit/phpunit": "*"
+        "phpunit/phpunit": "*",
+        "friendsofcake/cakephp-test-utilities": "^0.0.2"
     },
     "suggest": {
         "cakephp/migrations": "Database Migration plugin for CakePHP 3.0 based on Phinx"
@@ -28,7 +29,7 @@
     "autoload-dev": {
         "psr-4": {
             "Seo\\Test\\": "tests",
-            "Cake\\Test\\": "./vendor/cakephp/cakephp/tests"
+            "Cake\\Test\\": "/vendor/cakephp/cakephp/tests"
         }
     }
 }
