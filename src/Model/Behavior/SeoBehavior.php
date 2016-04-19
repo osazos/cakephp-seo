@@ -3,6 +3,7 @@ namespace Seo\Model\Behavior;
 
 use ArrayObject;
 use Cake\Event\Event;
+use Cake\I18n\I18n;
 use Cake\ORM\Behavior;
 use Cake\ORM\Entity;
 use Cake\ORM\Table;
@@ -86,12 +87,15 @@ class SeoBehavior extends Behavior
     public function initialize(array $config)
     {
         $this->_SeoUris = TableRegistry::get('Seo.SeoUris');
-        $this->_table->hasOne('SeoUris', [
-            'className' => 'Seo.SeoUris',
+
+        // Add Relations.
+        $this->_table->hasMany('SeoUris', [
             'foreignKey' => 'foreign_key',
-            'conditions' => ['SeoUris.model' => $this->_table->alias()],
-            'dependent' => true,
-            'cascadeCallbacks' => true,
+            'conditions' => [
+                'SeoUris.model' => $this->_table->alias(),
+                //'SeoUris.locale' => I18n::locale()
+            ],
+            'dependent' => true
         ]);
     }
 
@@ -107,7 +111,33 @@ class SeoBehavior extends Behavior
     {
         if ($entity->isNew()) {
             $this->saveDefaultUri($entity);
+        } else {
+            // Change route.
+            if ($entity->dirty()) {
+                $SeoUris = TableRegistry::get('Seo.SeoUris');
+
+                $urlsConfig = $this->config('urls');
+                
+                foreach ($urlsConfig as $key => $url) {
+                    $uri = $this->_getUri($entity, $url);
+                    $seoUri = $SeoUris->find()->contain(['SeoCanonicals'])->where([
+                        'model' => $this->_table->alias(),
+                        'foreign_key' => $entity->id,
+                        'locale' => isset($url['locale']) ? $url['locale'] : null
+                    ])->first();
+                    
+                    // $seoUriCanonical = Router::fullBaseUrl() . $uri;
+                    // $seoUri->seo_canonical->set('canonical', $seoUriCanonical);
+
+                    if ($seoUri) {
+                        $SeoUris->patchEntity($seoUri, ['uri' => $uri]);
+                        $SeoUris->save($seoUri);
+                    }
+                }
+            }
         }
+
+        \Cake\Cache\Cache::clear(false, 'seo');
     }
 
     /**
@@ -140,7 +170,8 @@ class SeoBehavior extends Behavior
         //         $this->_SeoUris->delete($seoUriEntity);
         //     }
         // }
-        return;
+        \Cake\Cache\Cache::clear(false, 'seo');
+        //return;
     }
 
     /**
@@ -190,7 +221,7 @@ class SeoBehavior extends Behavior
                 'uri' => $uri,
                 'model' => $this->_table->alias(),
                 'foreign_key' => $entity->id,
-                'locale' => $url['locale'],
+                'locale' => isset($url['locale']) ? $url['locale'] : null,
                 'is_approved' => true,
                 'seo_title' => [
                     'title' => $this->setSeoTitle($entity, $uri, $url)
