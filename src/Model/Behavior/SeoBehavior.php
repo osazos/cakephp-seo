@@ -115,23 +115,27 @@ class SeoBehavior extends Behavior
             // Change route.
             if ($entity->dirty()) {
                 $SeoUris = TableRegistry::get('Seo.SeoUris');
+                $SeoCanonicals = TableRegistry::get('Seo.SeoCanonicals');
 
                 $urlsConfig = $this->config('urls');
                 
                 foreach ($urlsConfig as $key => $url) {
                     $uri = $this->_getUri($entity, $url);
+
                     $seoUri = $SeoUris->find()->contain(['SeoCanonicals'])->where([
                         'model' => $this->_table->alias(),
                         'foreign_key' => $entity->id,
                         'locale' => isset($url['locale']) ? $url['locale'] : null
                     ])->first();
-                    
-                    // $seoUriCanonical = Router::fullBaseUrl() . $uri;
-                    // $seoUri->seo_canonical->set('canonical', $seoUriCanonical);
 
+                    
                     if ($seoUri) {
-                        $SeoUris->patchEntity($seoUri, ['uri' => $uri]);
+                        $seoUri = $SeoUris->patchEntity($seoUri, ['uri' => $uri], ['associated' => ['SeoCanonicals']]);
                         $SeoUris->save($seoUri);
+
+                        $seoUriCanonical = Router::fullBaseUrl() . $uri;
+                        $seoUri->seo_canonical->set('canonical', $seoUriCanonical);
+                        $SeoCanonicals->save($seoUri->seo_canonical);
                     }
                 }
             }
