@@ -7,16 +7,6 @@ use Cake\Utility\Text;
 
 trait SeoTrait
 {
-    
-    /**
-     * Shortcut to retrieve the actual locale set.
-     * @return string The locale name
-     */
-    public function getLocale()
-    {
-        return I18n::locale();
-    }
-
     /**
      * 
      */
